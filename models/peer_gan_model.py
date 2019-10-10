@@ -62,7 +62,9 @@ class PeerGANModel(BaseModel):
         self.image_paths = input['A_paths' if AtoB else 'B_paths']
 
     def forward(self):
-        self.fake_B = self.netG(self.netF(self.real_A))  # torch.Size([1, 3, 256, 256])
+        F = self.netF(self.real_A)
+        # print(F.size())
+        self.fake_B = self.netG(F)  # torch.Size([1, 3, 256, 256])
 
     def backward_D(self):
         """Calculate GAN loss for the discriminator"""
@@ -94,12 +96,13 @@ class PeerGANModel(BaseModel):
     def optimize_parameters(self):
         self.forward()  # compute fake images: G(A)
         # update D
-        self.optimizer_F.zero_grad()
+        # self.optimizer_F.zero_grad()
         self.set_requires_grad(self.netD, True)  # enable backprop for D
         self.optimizer_D.zero_grad()  # set D's gradients to zero
         self.backward_D()  # calculate gradients for D
         self.optimizer_G.step()
         self.optimizer_D.step()  # update D's weights
+        # self.optimizer_F.step()
         # update G
         self.set_requires_grad(self.netD, False)  # D requires no gradients when optimizing G
         self.optimizer_F.zero_grad()
